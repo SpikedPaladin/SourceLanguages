@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language id="vala" name="Vala" version="2.0" _section="Source">
+  <metadata>
+    <property name="mimetypes">text/x-vala</property>
+    <property name="globs">*.vala;*.vapi</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+  <styles>
+    <style id="comment" name="Comment" map-to="def:comment"/>
+    <style id="error" name="Error" map-to="def:error"/>
+    <style id="type" name="Data Type" map-to="def:type"/>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="keyword" name="Keyword" map-to="def:keyword"/>
+    <style id="boolean" name="Boolean value" map-to="def:boolean"/>
+    <style id="null-value" name="Null Value" map-to="def:special-constant"/>
+    <style id="directive" name="Directives" map-to="def:preprocessor"/>
+    <style id="attributes" name="Vala Attributes"/>
+    <style id="string-template" name="Vala String template" map-to="def:function"/>
+    <style id="regex" name="Regular Expression" map-to="def:string"/>
+    <style id="escape" name="Escaped Character" map-to="def:special-char"/>
+  </styles>
+
+  <definitions>
+    <define-regex id="preproc-start">^\s*#\s*</define-regex>
+    <define-regex id="identifier">[_a-zA-Z][_a-zA-Z0-9]*</define-regex>
+    <define-regex id="type-name">\b[A-Z][_a-zA-Z0-9]*</define-regex>
+
+    <!--regex-->
+    <define-regex id="regex-opts">[gim]*</define-regex>
+
+    <!--contexts NOT used in the main context-->
+    <context id="escape" style-ref="escape">
+      <match>\\((0-7){3}|(x[a-fA-F0-9]{2})|(c\S)|([CM]-\S)|(M-C-\S)|.)</match>
+    </context>
+
+    <context id="regex-bracketed" style-ref="escape" style-inside="true">
+      <start>(?&lt;!\\)[[]</start>
+      <end>(?&lt;!\\)]</end>
+    </context>
+
+    <!--contexts used in the main context-->
+    <context id="regex-simple" style-ref="regex">
+      <start extended="true">
+        ((?&lt;=([(]|\s))|^)
+        \/
+        (?=
+          ([^/\\]*(\\.))*
+          [^/]*
+          \/
+          \%{regex-opts}
+          \s*
+          ([),;.\/\]:}]|$)
+        )</start>
+      <end>\/\%{regex-opts}</end>
+      <include>
+        <context ref="escape"/>
+        <context ref="def:line-continue"/>
+        <context ref="regex-bracketed"/>
+      </include>
+    </context>
+
+    <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">
+      <start>//</start>
+      <include>
+        <context ref="def:in-line-comment"/>
+      </include>
+    </context>
+
+    <context id="multiline-comment" style-ref="comment" class="comment" class-disabled="no-spell-check">
+      <start>/\*</start>
+      <end>\*/</end>
+      <include>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <context id="close-comment-outside-comment" style-ref="error">
+      <match>\*/(?!\*)</match>
+    </context>
+
+	<context id="multiline-double-quoted-string" class="string" style-ref="string" class-disabled="no-spell-check">
+      <start>"""</start>
+      <end>"""</end>
+      <include>
+        <context ref="c:printf"/>
+      </include>
+    </context>
+
+    <context id="multiline-string" style-ref="string" class="string" class-disabled="no-spell-check">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context ref="c:printf"/>
+        <context ref="c:escaped-character"/>
+        <context ref="def:line-continue"/>
+      </include>
+    </context>
+
+    <context id="multiline-string-templates" style-ref="string" class="string" class-disabled="no-spell-check">
+      <start>@"</start>
+      <end>"</end>
+      <include>
+        <context ref="c:printf"/>
+        <context ref="c:escaped-character"/>
+        <context ref="def:line-continue"/>
+        <context id="string-templates" style-ref="string-template">
+            <match>\$\%{identifier}</match>
+        </context>
+        <context id="string-templates-brackets" style-ref="string-template">
+          <start>\$\(</start>
+          <end>\)</end>
+          <include>
+            <context id="in-string-templates-brackets">
+              <include>
+                <context>
+                  <start>\(</start>
+                  <end>\)</end>
+                  <include>
+                    <context ref="in-string-templates-brackets"/>
+                  </include>
+                </context>
+              </include>
+            </context>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="if0-comment" style-ref="comment">
+        <start>\%{preproc-start}if\b\s*(0|false|\!true|\!1)\b</start>
+        <end>(\%{preproc-start}endif)|(\%{preproc-start}(else|elif).*)\b</end>
+        <include>
+            <context sub-pattern="2" where="end" style-ref="directive"/>
+            <context id="if-in-if0">
+                <start>\%{preproc-start}if\b</start>
+                <end>\%{preproc-start}endif\b</end>
+                <include>
+                    <context ref="if-in-if0"/>
+                    <context ref="def:in-comment"/>
+                </include>
+            </context>
+            <context ref="def:in-comment"/>
+        </include>
+    </context>
+
+    <context id="directive" style-ref="directive" end-at-line-end="true">
+        <start extended="true">
+                \%{preproc-start}
+                (if|else|elif|endif)
+                \b
+        </start>
+        <include>
+            <context ref="boolean"/>
+        </include>
+    </context>
+    
+    <context id="keywords" style-ref="keyword">
+      <prefix>(?&lt;=^|[^@\w\.])</prefix>
+      <keyword>class</keyword>
+      <keyword>delegate</keyword>
+      <keyword>enum</keyword>
+      <keyword>errordomain</keyword>
+      <keyword>interface</keyword>
+      <keyword>namespace</keyword>
+      <keyword>signal</keyword>
+      <keyword>struct</keyword>
+      <keyword>using</keyword>
+      <!-- modifiers -->
+      <keyword>abstract</keyword>
+      <keyword>async</keyword>
+      <keyword>const</keyword>
+      <keyword>dynamic</keyword>
+      <keyword>extern</keyword>
+      <keyword>inline</keyword>
+      <keyword>internal</keyword>
+      <keyword>out</keyword>
+      <keyword>override</keyword>
+      <keyword>owned</keyword>
+      <keyword>private</keyword>
+      <keyword>protected</keyword>
+      <keyword>public</keyword>
+      <keyword>ref</keyword>
+      <keyword>static</keyword>
+      <keyword>unowned</keyword>
+      <keyword>virtual</keyword>
+      <keyword>volatile</keyword>
+      <keyword>weak</keyword>
+      <!-- others -->
+      <keyword>as</keyword>
+      <keyword>base</keyword>
+      <keyword>break</keyword>
+      <keyword>case</keyword>
+      <keyword>catch</keyword>
+      <keyword>construct</keyword>
+      <keyword>continue</keyword>
+      <keyword>default</keyword>
+      <keyword>delete</keyword>
+      <keyword>do</keyword>
+      <keyword>else</keyword>
+      <keyword>ensures</keyword>
+      <keyword>finally</keyword>
+      <keyword>for</keyword>
+      <keyword>foreach</keyword>
+      <keyword>get</keyword>
+      <keyword>if</keyword>
+      <keyword>in</keyword>
+      <keyword>is</keyword>
+      <keyword>lock</keyword>
+      <keyword>with</keyword>
+      <keyword>new</keyword>
+      <keyword>params</keyword>
+      <keyword>requires</keyword>
+      <keyword>return</keyword>
+      <keyword>set</keyword>
+      <keyword>sizeof</keyword>
+      <keyword>switch</keyword>
+      <keyword>this</keyword>
+      <keyword>throw</keyword>
+      <keyword>throws</keyword>
+      <keyword>try</keyword>
+      <keyword>typeof</keyword>
+      <keyword>value</keyword>
+      <keyword>var</keyword>
+      <keyword>while</keyword>
+      <keyword>yield</keyword>
+      <keyword>yields</keyword>
+    </context>
+
+    <context id="primitives" style-ref="type">
+      <prefix>(?&lt;=^|[^@\w\.])</prefix>
+      <keyword>bool</keyword>
+      <keyword>char</keyword>
+      <keyword>double</keyword>
+      <keyword>float</keyword>
+      <keyword>int</keyword>
+      <keyword>int8</keyword>
+      <keyword>int16</keyword>
+      <keyword>int32</keyword>
+      <keyword>int64</keyword>
+      <keyword>long</keyword>
+      <keyword>short</keyword>
+      <keyword>size_t</keyword>
+      <keyword>ssize_t</keyword>
+      <keyword>string</keyword>
+      <keyword>uchar</keyword>
+      <keyword>uint</keyword>
+      <keyword>uint8</keyword>
+      <keyword>uint16</keyword>
+      <keyword>uint32</keyword>
+      <keyword>uint64</keyword>
+      <keyword>ulong</keyword>
+      <keyword>unichar</keyword>
+      <keyword>unichar2</keyword>
+      <keyword>ushort</keyword>
+      <keyword>void</keyword>
+    </context>
+    
+    <context id="attributes" style-ref="attributes">
+        <start>\[\s*(\%{type-name})</start>
+        <end>\]</end>
+        <include>
+            <context sub-pattern="1" where="start" style-ref="type"/>
+            <context ref="boolean"/>
+            <context ref="multiline-string"/>
+            <context ref="c:float"/>
+            <context ref="c:decimal"/>
+            <context id="attribute-name" style-ref="def:special-char">
+            	<match>\b([_a-z]+\w*)</match>
+        	</context>
+        </include>
+    </context>
+
+    <context id="null-value" style-ref="null-value">
+      <keyword>null</keyword>
+    </context>
+
+    <context id="boolean" style-ref="boolean">
+      <keyword>false</keyword>
+      <keyword>true</keyword>
+    </context>
+    
+    <context id="type" style-ref="type">
+        <match>\%{type-name}</match>
+    </context>
+    
+    <context id="function" style-ref="def:function">
+        <match>(\w+)(?=\s*(&lt;[\s\w.]+&gt;\s*)?\()</match>
+    </context>
+    
+    <context id="constant" style-ref="def:special-constant">
+    	<match>([A-Z][A-Z0-9_]+)(?!\()\b</match>
+    </context>
+    
+    <context id="vala" class="no-spell-check">
+      <include>
+        <context ref="gtk-doc:inline-docs-section"/>
+        <context ref="line-comment"/>
+        <context ref="multiline-comment"/>
+        <context ref="close-comment-outside-comment"/>
+        <context ref="multiline-string-templates"/>
+        <context ref="multiline-double-quoted-string"/>
+        <context ref="multiline-string"/>
+        <context ref="constant"/>
+        <context ref="type"/>
+        <context ref="keywords"/>
+        <context ref="primitives"/>
+        <context ref="attributes"/>
+        <context ref="null-value"/>
+        <context ref="boolean"/>
+        <context ref="c:char"/>
+        <context ref="c:decimal"/>
+        <context ref="c:hexadecimal"/>
+        <context ref="c:float"/>
+        <context ref="c:octal"/>
+        <context ref="if0-comment"/>
+        <context ref="directive"/>
+        <context ref="regex-simple"/>
+        <context ref="function"/>
+      </include>
+    </context>
+  </definitions>
+</language>
