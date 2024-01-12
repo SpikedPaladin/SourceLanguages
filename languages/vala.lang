@@ -29,7 +29,7 @@
     <define-regex id="type-name">\b[A-Z][_a-zA-Z0-9]*</define-regex>
 
     <!--regex-->
-    <define-regex id="regex-opts">[gim]*</define-regex>
+    <define-regex id="regex-opts">[imsx]*</define-regex>
 
     <!--contexts NOT used in the main context-->
     <context id="escape" style-ref="escape">
@@ -43,18 +43,8 @@
 
     <!--contexts used in the main context-->
     <context id="regex-simple" style-ref="regex">
-      <start extended="true">
-        ((?&lt;=([(]|\s))|^)
-        \/
-        (?=
-          ([^/\\]*(\\.))*
-          [^/]*
-          \/
-          \%{regex-opts}
-          \s*
-          ([),;.\/\]:}]|$)
-        )</start>
-      <end>\/\%{regex-opts}</end>
+      <start>\/((\\\/)|([^\/]))*\/(?=\s*[imxs,;)\.\n])</start>
+      <end>\%{regex-opts}</end>
       <include>
         <context ref="escape"/>
         <context ref="def:line-continue"/>
