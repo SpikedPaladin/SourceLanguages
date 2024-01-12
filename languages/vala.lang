@@ -13,6 +13,7 @@
     <style id="error" name="Error" map-to="def:error"/>
     <style id="type" name="Data Type" map-to="def:type"/>
     <style id="string" name="String" map-to="def:string"/>
+    <style id="number" name="Number" map-to="def:number"/>
     <style id="keyword" name="Keyword" map-to="def:keyword"/>
     <style id="boolean" name="Boolean value" map-to="def:boolean"/>
     <style id="null-value" name="Null Value" map-to="def:special-constant"/>
@@ -70,6 +71,10 @@
     <context id="close-comment-outside-comment" style-ref="error">
       <match>\*/(?!\*)</match>
     </context>
+
+  <context id="number" style-ref="number">
+    <match>\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)([LlFfUuDd]|UL|ul)?\b</match>
+  </context>
 
 	<context id="multiline-double-quoted-string" class="string" style-ref="string" class-disabled="no-spell-check">
       <start>"""</start>
@@ -302,10 +307,7 @@
         <context ref="null-value"/>
         <context ref="boolean"/>
         <context ref="c:char"/>
-        <context ref="c:decimal"/>
-        <context ref="c:hexadecimal"/>
-        <context ref="c:float"/>
-        <context ref="c:octal"/>
+        <context ref="number"/>
         <context ref="if0-comment"/>
         <context ref="directive"/>
         <context ref="regex-simple"/>
