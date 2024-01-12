@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function install_language() {
-	LANGUAGE_FOLDER=~/.local/share/gtksourceview-4/language-specs
+	LANGUAGE_FOLDER=~/.local/share/gtksourceview-5/language-specs
 	mkdir -p $LANGUAGE_FOLDER && cp ./languages/$2 $LANGUAGE_FOLDER
     echo -e "Installed language: \033[36m$1\033[0m"
 }
