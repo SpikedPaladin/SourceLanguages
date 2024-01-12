@@ -292,7 +292,7 @@
     </context>
     
     <context id="constant" style-ref="def:special-constant">
-    	<match>([A-Z][A-Z0-9_]+)(?!\()\b</match>
+    	<match>\b([A-Z][A-Z0-9_]+)\b</match>
     </context>
     
     <context id="vala" class="no-spell-check">
