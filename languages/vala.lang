@@ -182,6 +182,7 @@
       <keyword>private</keyword>
       <keyword>protected</keyword>
       <keyword>public</keyword>
+      <keyword>sealed</keyword>
       <keyword>ref</keyword>
       <keyword>static</keyword>
       <keyword>unowned</keyword>
